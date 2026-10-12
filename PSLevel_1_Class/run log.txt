@@ -1,0 +1,70 @@
+
+========== PART C: RELEVANCE SCORES ==========
+
+Query: What CGPA do I need to be eligible for placements?
+Score: 0.1849 | Source: placement_policy.md
+Score: 0.2364 | Source: fee_policy.md
+Score: 0.2842 | Source: placement_policy.md
+
+Query: What is the capital of France?
+Score: 0.5731 | Source: hostel_rules.md
+Score: 0.5731 | Source: hostel_rules.md
+Score: 0.5772 | Source: library.md
+
+Current MAX_DISTANCE = 0.6
+Adjust it based on your measured scores.
+
+========== LANGGRAPH WORKFLOW ==========
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	agent(agent)
+	tools(tools)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> agent;
+	agent -.-> __end__;
+	agent -.-> tools;
+	tools --> agent;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc
+
+
+========== PART D: FIVE TEST QUESTIONS ==========
+
+[task-run] USER: What CGPA do I need to be eligible for placements?
+   agent  -> call search_handbook({'query': 'CGPA eligibility placements'})
+   tools  -> search_handbook returned '[placement_policy.md] # Placement Policy (Greenfield College of Engineering - sample document)\n \n## Eligibility\nStudents with a CGPA of 6.5 or above a'
+   agent  -> ANSWER: Students need a CGPA of 6.5 or higher (and no standing arrears) to be eligible for campus placements.  
+*Source: placement_policy.md*
+
+[task-run] USER: My attendance is 70%. Can I write the exam?
+   agent  -> call check_exam_eligibility({'attendance_percent': 70})
+   tools  -> check_exam_eligibility returned 'CONDONATION: You need condonation. Pay Rs. 500 per course.'
+   agent  -> ANSWER: You are eligible for the exam with a condonation requirement. You’ll need to pay a condonation fee of **Rs 500 per course**.
+
+[task-run] USER: What is the total of the CS101 fee, the AI202 fee and the maximum late fee?
+   agent  -> call search_handbook({'query': 'maximum late fee'})
+   tools  -> search_handbook returned '[fee_policy.md] ## Late fee\nA late fee of Rs. 100 per day is charged after the due date.\nThe maximum late fee is Rs. 2,000 per semester. After 30 days'
+   agent  -> call get_course_fee({'course_code': 'CS101'})
+   tools  -> get_course_fee returned 'CS101 fee is Rs. 12000'
+   agent  -> call get_course_fee({'course_code': 'AI202'})
+   tools  -> get_course_fee returned 'AI202 fee is Rs. 18000'
+   agent  -> call calculator({'expression': '12000 + 18000 + 2000'})
+   tools  -> calculator returned '32000'
+   agent  -> ANSWER: The total comes to **Rs 32,000** (CS101 = 12,000 + AI202 = 18,000 + maximum late fee = 2,000).
+
+[task-run] USER: And if I pay only 5 days late instead?
+   agent  -> call calculator({'expression': '12000 + 18000 + 500'})
+   tools  -> calculator returned '30500'
+   agent  -> ANSWER: If you’re only 5 days late, the late fee would be 5 × Rs 100 = Rs 500.  
+So the total would be **Rs 30,500** (CS101 = 12,000 + AI202 = 18,000 + late fee = 500).
+
+[task-run] USER: What is the capital of France?
+   agent  -> ANSWER: I don't know. This is not covered in the college handbook.
+
+Thread task-run has 24 messages saved in memory.
